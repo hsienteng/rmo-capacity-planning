@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64px" height="64px" viewBox="0 0 64 64" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>RMO Logo</title>
+    <g id="RMO-Logo" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <circle id="Oval" fill="#0059DB" cx="32" cy="32" r="32"></circle>
+        <path d="M40,20 L48,20 L48,44 L40,44 L40,20 Z M28,20 L36,20 L36,44 L28,44 L28,20 Z M16,20 L24,20 L24,44 L16,44 L16,20 Z" id="R" fill="#FFFFFF"></path>
+    </g>
+</svg>
