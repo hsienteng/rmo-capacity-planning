@@ -120,9 +120,7 @@ const AllocationEditModal = ({ visible, onHide, resourceId, monthId }) => {
 
   return (
     <Dialog
-      header={`Edit Allocation - ${
-        resource ? resource.name : ""
-      } (${formatMonthId(monthId)})`}
+      header={`${resource ? resource.name : ""} (${formatMonthId(monthId)})`}
       visible={visible}
       onHide={onHide}
       style={{ width: "550px" }}
