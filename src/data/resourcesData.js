@@ -385,6 +385,9 @@ const projectDict = {
   p8: "Customer Dashboard",
   p9: "Microservices",
   p10: "IoT Platform",
+  p11: "Legacy System Migration",
+  p12: "AI Chatbot",
+  p13: "HR Portal",
   general: "General Activities",
 };
 
@@ -399,6 +402,7 @@ function getAllocationClass(percentage) {
 
 // Create predefined allocation patterns for specific resources to match the image example
 const specificAllocations = {
+  // A backend developer with no allocations (blank slate)
   7: {
     "mar-2025": {
       totalAllocation: 0,
@@ -431,19 +435,25 @@ const specificAllocations = {
       projectAllocations: [],
     },
     "sep-2025": {
-      totalAllocation: 0,
-      allocationClass: "allocation-0",
-      projectAllocations: [],
+      totalAllocation: 30,
+      allocationClass: "allocation-1",
+      projectAllocations: [
+        { projectId: "p9", projectName: projectDict["p9"], allocation: 30 }
+      ],
     },
     "oct-2025": {
-      totalAllocation: 0,
-      allocationClass: "allocation-0",
-      projectAllocations: [],
+      totalAllocation: 50,
+      allocationClass: "allocation-2",
+      projectAllocations: [
+        { projectId: "p9", projectName: projectDict["p9"], allocation: 50 }
+      ],
     },
     "nov-2025": {
-      totalAllocation: 0,
-      allocationClass: "allocation-0",
-      projectAllocations: [],
+      totalAllocation: 70,
+      allocationClass: "allocation-2",
+      projectAllocations: [
+        { projectId: "p9", projectName: projectDict["p9"], allocation: 70 }
+      ],
     },
   },
 
@@ -605,6 +615,197 @@ const specificAllocations = {
       totalAllocation: 0,
       allocationClass: "allocation-0",
       projectAllocations: [],
+    },
+  },
+
+  // Maya Johnson (Junior Developer)
+  10: {
+    "mar-2025": {
+      totalAllocation: 60,
+      allocationClass: "allocation-2",
+      projectAllocations: [
+        { projectId: "p1", projectName: projectDict["p1"], allocation: 60 },
+      ],
+    },
+    "apr-2025": {
+      totalAllocation: 40,
+      allocationClass: "allocation-1",
+      projectAllocations: [
+        { projectId: "p1", projectName: projectDict["p1"], allocation: 40 },
+      ],
+    },
+    "may-2025": {
+      totalAllocation: 0,
+      allocationClass: "allocation-0",
+      projectAllocations: [],
+    },
+    "jun-2025": {
+      totalAllocation: 0,
+      allocationClass: "allocation-0",
+      projectAllocations: [],
+    },
+    "jul-2025": {
+      totalAllocation: 0,
+      allocationClass: "allocation-0",
+      projectAllocations: [],
+    },
+    "aug-2025": {
+      totalAllocation: 30,
+      allocationClass: "allocation-1",
+      projectAllocations: [
+        { projectId: "p13", projectName: projectDict["p13"], allocation: 30 },
+      ],
+    },
+    "sep-2025": {
+      totalAllocation: 60,
+      allocationClass: "allocation-2",
+      projectAllocations: [
+        { projectId: "p13", projectName: projectDict["p13"], allocation: 60 },
+      ],
+    },
+    "oct-2025": {
+      totalAllocation: 70,
+      allocationClass: "allocation-2",
+      projectAllocations: [
+        { projectId: "p13", projectName: projectDict["p13"], allocation: 70 },
+      ],
+    },
+    "nov-2025": {
+      totalAllocation: 40,
+      allocationClass: "allocation-1",
+      projectAllocations: [
+        { projectId: "p13", projectName: projectDict["p13"], allocation: 40 },
+      ],
+    },
+  },
+
+  // Kai Tanaka (ML Engineer)
+  16: {
+    "mar-2025": {
+      totalAllocation: 80,
+      allocationClass: "allocation-2",
+      projectAllocations: [
+        { projectId: "p5", projectName: projectDict["p5"], allocation: 80 },
+      ],
+    },
+    "apr-2025": {
+      totalAllocation: 80,
+      allocationClass: "allocation-2",
+      projectAllocations: [
+        { projectId: "p5", projectName: projectDict["p5"], allocation: 80 },
+      ],
+    },
+    "may-2025": {
+      totalAllocation: 70,
+      allocationClass: "allocation-2",
+      projectAllocations: [
+        { projectId: "p5", projectName: projectDict["p5"], allocation: 70 },
+      ],
+    },
+    "jun-2025": {
+      totalAllocation: 50,
+      allocationClass: "allocation-2",
+      projectAllocations: [
+        { projectId: "p5", projectName: projectDict["p5"], allocation: 50 },
+      ],
+    },
+    "jul-2025": {
+      totalAllocation: 0,
+      allocationClass: "allocation-0",
+      projectAllocations: [],
+    },
+    "aug-2025": {
+      totalAllocation: 40,
+      allocationClass: "allocation-1",
+      projectAllocations: [
+        { projectId: "p12", projectName: projectDict["p12"], allocation: 40 },
+      ],
+    },
+    "sep-2025": {
+      totalAllocation: 70,
+      allocationClass: "allocation-2",
+      projectAllocations: [
+        { projectId: "p12", projectName: projectDict["p12"], allocation: 70 },
+      ],
+    },
+    "oct-2025": {
+      totalAllocation: 90,
+      allocationClass: "allocation-3",
+      projectAllocations: [
+        { projectId: "p12", projectName: projectDict["p12"], allocation: 90 },
+      ],
+    },
+    "nov-2025": {
+      totalAllocation: 40,
+      allocationClass: "allocation-1",
+      projectAllocations: [
+        { projectId: "p12", projectName: projectDict["p12"], allocation: 40 },
+      ],
+    },
+  },
+
+  // Elena Sanchez (DevOps Engineer)
+  33: {
+    "mar-2025": {
+      totalAllocation: 70,
+      allocationClass: "allocation-2",
+      projectAllocations: [
+        { projectId: "p4", projectName: projectDict["p4"], allocation: 70 },
+      ],
+    },
+    "apr-2025": {
+      totalAllocation: 70,
+      allocationClass: "allocation-2",
+      projectAllocations: [
+        { projectId: "p4", projectName: projectDict["p4"], allocation: 70 },
+      ],
+    },
+    "may-2025": {
+      totalAllocation: 60,
+      allocationClass: "allocation-2",
+      projectAllocations: [
+        { projectId: "p4", projectName: projectDict["p4"], allocation: 60 },
+      ],
+    },
+    "jun-2025": {
+      totalAllocation: 0,
+      allocationClass: "allocation-0",
+      projectAllocations: [],
+    },
+    "jul-2025": {
+      totalAllocation: 30,
+      allocationClass: "allocation-1",
+      projectAllocations: [
+        { projectId: "p11", projectName: projectDict["p11"], allocation: 30 },
+      ],
+    },
+    "aug-2025": {
+      totalAllocation: 50,
+      allocationClass: "allocation-2",
+      projectAllocations: [
+        { projectId: "p11", projectName: projectDict["p11"], allocation: 50 },
+      ],
+    },
+    "sep-2025": {
+      totalAllocation: 80,
+      allocationClass: "allocation-2",
+      projectAllocations: [
+        { projectId: "p11", projectName: projectDict["p11"], allocation: 80 },
+      ],
+    },
+    "oct-2025": {
+      totalAllocation: 100,
+      allocationClass: "allocation-3",
+      projectAllocations: [
+        { projectId: "p11", projectName: projectDict["p11"], allocation: 100 },
+      ],
+    },
+    "nov-2025": {
+      totalAllocation: 70,
+      allocationClass: "allocation-2",
+      projectAllocations: [
+        { projectId: "p11", projectName: projectDict["p11"], allocation: 70 },
+      ],
     },
   },
 };

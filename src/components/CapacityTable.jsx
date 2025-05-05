@@ -3,6 +3,7 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { useCapacity } from "../context/CapacityContext";
 import AllocationEditModal from "./AllocationEditModal";
+import ResourceDetailsModal from "./ResourceDetailsModal";
 
 // Conversion constants
 const WORK_DAYS_PER_WEEK = 5;
@@ -22,6 +23,10 @@ const CapacityTable = () => {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [selectedResource, setSelectedResource] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(null);
+  
+  // State for the resource details modal
+  const [detailsModalVisible, setDetailsModalVisible] = useState(false);
+  const [selectedResourceId, setSelectedResourceId] = useState(null);
 
   // Find the label for the selected category
   const findCategoryLabel = () => {
@@ -44,13 +49,23 @@ const CapacityTable = () => {
 
   const categoryLabel = findCategoryLabel();
 
-  // Body template for name column
+  // Body template for name column with click handler
   const nameBodyTemplate = (rowData) => {
     return (
-      <div className="flex align-items-center">
+      <div 
+        className="flex align-items-center" 
+        style={{ cursor: 'pointer' }}
+        onClick={() => handleResourceNameClick(rowData.id)}
+      >
         <span className="resource-name-column">{rowData.name}</span>
       </div>
     );
+  };
+  
+  // Handler for resource name click
+  const handleResourceNameClick = (resourceId) => {
+    setSelectedResourceId(resourceId);
+    setDetailsModalVisible(true);
   };
 
   // Body template for role column
@@ -189,6 +204,13 @@ const CapacityTable = () => {
           onHide={() => setEditModalVisible(false)}
           resourceId={selectedResource}
           monthId={selectedMonth}
+        />
+        
+        {/* Resource Details Modal */}
+        <ResourceDetailsModal
+          visible={detailsModalVisible}
+          onHide={() => setDetailsModalVisible(false)}
+          resourceId={selectedResourceId}
         />
       </div>
     </div>

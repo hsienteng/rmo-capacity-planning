@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
-import { TabView, TabPanel } from "primereact/tabview";
 import { Button } from "primereact/button";
 import { Calendar } from "primereact/calendar";
 import { Dropdown } from "primereact/dropdown";
 import { Card } from "primereact/card";
 import { Tag } from "primereact/tag";
+import { InputText } from "primereact/inputtext";
 
 import ResourceSidebar from "./ResourceSidebar";
 import CapacityTable from "./CapacityTable";
-import ProjectsList from "./ProjectsList";
 import { useCapacity } from "../context/CapacityContext";
 
 const CapacityPlanning = () => {
@@ -25,10 +24,10 @@ const CapacityPlanning = () => {
     setSelectedMonths,
     viewMode,
     setViewMode,
+    searchQuery,
+    setSearchQuery,
   } = useCapacity();
 
-  // Active tab state
-  const [activeIndex, setActiveIndex] = useState(0);
   const contentRef = useRef(null);
 
   // Calendar date range
@@ -148,12 +147,12 @@ const CapacityPlanning = () => {
   const categoryLabel = findCategoryLabel();
 
   useEffect(() => {
-    // Force recalculation of heights when tab or filters change
+    // Force recalculation of heights when filters change
     if (contentRef.current) {
       const event = new Event("resize");
       window.dispatchEvent(event);
     }
-  }, [activeIndex, selectedCategory, selectedMainCategory]);
+  }, [selectedCategory, selectedMainCategory]);
 
   // Format displayed date range
   const formatDateRange = () => {
@@ -215,6 +214,15 @@ const CapacityPlanning = () => {
           </div>
 
           <div className="flex align-items-center gap-2 ml-auto">
+            <span className="p-input-icon-left search-container">
+              <i className="pi pi-search" />
+              <InputText
+                placeholder="Search resources"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="p-inputtext-sm"
+              />
+            </span>
             <span className="font-medium text-gray-700">View:</span>
             <Dropdown
               options={[
@@ -267,27 +275,8 @@ const CapacityPlanning = () => {
         {/* Main content with wrapper to control overflow */}
         <div className={`main-column ${sidebarVisible ? "" : "full-width"}`}>
           <Card className="p-0">
-            <div className="p-card-body p-0">
-              <TabView
-                activeIndex={activeIndex}
-                onTabChange={(e) => setActiveIndex(e.index)}
-              >
-                <TabPanel header="Resource Capacity">
-                  <div className="p-3">
-                    <CapacityTable />
-                  </div>
-                </TabPanel>
-                <TabPanel header="Project Allocation">
-                  <div className="p-3">
-                    <ProjectsList excluded={false} />
-                  </div>
-                </TabPanel>
-                <TabPanel header="Excluded Projects">
-                  <div className="p-3">
-                    <ProjectsList excluded={true} />
-                  </div>
-                </TabPanel>
-              </TabView>
+            <div className="p-card-body p-3">
+              <CapacityTable />
             </div>
           </Card>
         </div>

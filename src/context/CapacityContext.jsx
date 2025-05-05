@@ -46,6 +46,9 @@ export const CapacityProvider = ({ children }) => {
     months.map((month) => month.id)
   );
 
+  // Search query for resources
+  const [searchQuery, setSearchQuery] = useState("");
+
   // View mode state (percentage, days, hours)
   const [viewMode, setViewMode] = useState("percentage");
 
@@ -62,6 +65,7 @@ export const CapacityProvider = ({ children }) => {
   useEffect(() => {
     let filteredResources;
 
+    // First filter by category
     if (selectedCategory) {
       // Filter by specific subcategory
       filteredResources = allResources.filter(
@@ -77,8 +81,17 @@ export const CapacityProvider = ({ children }) => {
       filteredResources = allResources;
     }
 
+    // Then filter by search query
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase().trim();
+      filteredResources = filteredResources.filter((resource) =>
+        resource.name.toLowerCase().includes(query) ||
+        resource.category.toLowerCase().includes(query)
+      );
+    }
+
     setResources(filteredResources);
-  }, [allResources, selectedCategory, selectedMainCategory]);
+  }, [allResources, selectedCategory, selectedMainCategory, searchQuery]);
 
   // Update resource allocation for a specific resource and month
   const updateResourceAllocation = (
@@ -291,6 +304,8 @@ export const CapacityProvider = ({ children }) => {
     updateResourceAllocation,
     viewMode,
     setViewMode,
+    searchQuery,
+    setSearchQuery,
   };
 
   return (

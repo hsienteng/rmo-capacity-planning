@@ -115,13 +115,13 @@ const ResourceSidebar = () => {
             disabled={!selectedCategory && !selectedMainCategory}
           />
         </div>
-
+        {/* 
         <div className="resource-sidebar-search mb-3">
           <span className="p-input-icon-left w-full">
             <i className="pi pi-search" />
             <InputText placeholder="Search resources" className="w-full" />
           </span>
-        </div>
+        </div> */}
       </div>
 
       <div className="resource-tree-container">
