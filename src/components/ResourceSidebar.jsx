@@ -1,7 +1,8 @@
 import React from "react";
 import { Tree } from "primereact/tree";
+import { Card } from "primereact/card";
 import { InputText } from "primereact/inputtext";
-import { Badge } from "primereact/badge";
+import { Button } from "primereact/button";
 import { useCapacity } from "../context/CapacityContext";
 
 const ResourceSidebar = () => {
@@ -11,91 +12,138 @@ const ResourceSidebar = () => {
     selectedMainCategory,
     expandedKeys,
     selectCategory,
+    showAllResources,
     onToggle,
     getCategoryResourceCount,
   } = useCapacity();
 
-  // Prepare the tree nodes based on the resource categories
-  const nodes = categories.map((category) => {
-    const resourceCount = getCategoryResourceCount(category.key);
+  // Convert our categories to the Tree component's expected format
+  const transformCategoriesToTreeNodes = (categories) => {
+    return categories.map((category) => {
+      // Get the actual resource count for this category
+      const resourceCount = getCategoryResourceCount(category.key);
 
-    return {
-      key: category.key,
-      label: category.label,
-      icon: category.icon,
-      selectable: true,
-      className: selectedMainCategory === category.key ? "selected-node" : "",
-      children: category.children?.map((sub) => {
-        const subResourceCount = getCategoryResourceCount(sub.key);
-        return {
-          key: sub.key,
-          label: sub.label,
-          icon: sub.icon,
-          selectable: true,
-          className: selectedCategory === sub.key ? "selected-node" : "",
-          data: { count: subResourceCount },
-        };
-      }),
-      data: { count: resourceCount },
-    };
-  });
+      // Determine if this is the selected category
+      const isSelected =
+        category.key === selectedCategory ||
+        category.key === selectedMainCategory;
 
-  // Customize the tree node template to show counts
+      const node = {
+        key: category.key,
+        label: category.label,
+        icon: category.icon,
+        data: {
+          ...category,
+          count: resourceCount,
+          isSelected,
+        },
+        selectable: true,
+      };
+
+      if (category.children && category.children.length > 0) {
+        // For main categories, add children
+        node.children = transformCategoriesToTreeNodes(category.children);
+      }
+
+      return node;
+    });
+  };
+
+  const treeNodes = transformCategoriesToTreeNodes(categories);
+
+  // Custom node template for tree
   const nodeTemplate = (node, options) => {
-    const resourceCount = node.data?.count || 0;
+    const isMainCategory = !node.key.includes("-");
+    const isSelected = isMainCategory
+      ? selectedMainCategory === node.key
+      : selectedCategory === node.key;
+
+    // Apply different styles based on selection state
+    const className = isSelected
+      ? "font-semibold text-primary"
+      : options.className;
+
+    // Get count of resources in this category
+    const count = node.data.count || 0;
 
     return (
       <div
-        className={`tree-node ${options.className} ${node.className || ""}`}
-        onClick={() => selectCategory(node.key)}
+        className={className}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
       >
-        <div className="flex align-items-center">
+        <div>
           <i className={`${node.icon} mr-2`}></i>
-          <span className="tree-label">{node.label}</span>
-
-          {/* Only show badge if there are resources */}
-          {resourceCount > 0 && (
-            <Badge
-              value={resourceCount}
-              className="ml-auto resource-count-badge"
-              severity="info"
-            ></Badge>
-          )}
+          <span>{node.label}</span>
         </div>
+        {count > 0 && (
+          <span
+            className={`resource-count-badge ${
+              isSelected
+                ? "selected-category"
+                : isMainCategory
+                ? "main-category"
+                : ""
+            }`}
+          >
+            {count}
+          </span>
+        )}
       </div>
     );
   };
 
+  // Handler for node selection
+  const onNodeSelect = (e) => {
+    selectCategory(e.node.key);
+  };
+
   return (
-    <div className="resource-sidebar p-2">
-      <div className="sidebar-header">
-        <h3>Resources</h3>
+    <Card className="resource-sidebar">
+      <div className="resource-sidebar-header">
+        <div className="flex align-items-center justify-content-between mb-3">
+          <h3 className="resource-sidebar-title m-0">User Groups</h3>
+          <Button
+            icon="pi pi-users"
+            label="All"
+            className="p-button-text p-button-sm all-resources-btn"
+            onClick={showAllResources}
+            tooltip="Show all resources"
+            disabled={!selectedCategory && !selectedMainCategory}
+          />
+        </div>
+
+        <div className="resource-sidebar-search mb-3">
+          <span className="p-input-icon-left w-full">
+            <i className="pi pi-search" />
+            <InputText placeholder="Search resources" className="w-full" />
+          </span>
+        </div>
       </div>
 
-      {/* Search box */}
-      <span className="p-input-icon-left w-full mb-3">
-        <i className="pi pi-search" />
-        <InputText placeholder="Search resources" className="w-full" />
-      </span>
-
-      {/* Resource tree */}
-      <Tree
-        value={nodes}
-        expandedKeys={expandedKeys}
-        onToggle={onToggle}
-        nodeTemplate={nodeTemplate}
-        selectionMode="single"
-        className="resource-tree"
-        pt={{
-          root: {
-            className: "border-none",
-          },
-          nodeContent: {
-            className: "py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200 rounded-lg px-2",
-          },
-        }}
-      />
-    </div>
+      <div className="resource-tree-container">
+        <Tree
+          value={treeNodes}
+          selectionMode="single"
+          selectionKeys={
+            selectedCategory
+              ? { [selectedCategory]: true }
+              : selectedMainCategory
+              ? { [selectedMainCategory]: true }
+              : {}
+          }
+          expandedKeys={expandedKeys}
+          onToggle={onToggle}
+          onSelect={onNodeSelect}
+          nodeTemplate={nodeTemplate}
+          className="resource-tree border-none"
+          pt={{ nodeIcon: { className: "hidden" } }}
+        />
+      </div>
+    </Card>
   );
 };
 

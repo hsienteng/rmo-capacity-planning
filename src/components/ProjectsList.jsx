@@ -1,237 +1,163 @@
-import React, { useState } from "react";
+import React from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { Tag } from "primereact/tag";
 import { Button } from "primereact/button";
-import { Menu } from "primereact/menu";
-import { Chart } from "primereact/chart";
+import { Tag } from "primereact/tag";
 import { useCapacity } from "../context/CapacityContext";
 
 const ProjectsList = ({ excluded }) => {
   const {
     projects,
     excludedProjects,
-    projectDemands,
     filteredMonths,
+    projectDemands,
     toggleProjectExclusion,
   } = useCapacity();
 
-  const [selectedProject, setSelectedProject] = useState(null);
-  const menuRef = React.useRef(null);
-
-  // Get the appropriate list of projects based on the excluded prop
+  // Get the appropriate list based on the excluded prop
   const projectsList = excluded ? excludedProjects : projects;
 
-  // Prepare priority tag template
-  const priorityTemplate = (rowData) => {
-    let severity = "success";
-    if (rowData.priority === "high") severity = "danger";
-    else if (rowData.priority === "medium") severity = "warning";
+  // Find project demand data for the displayed projects
+  const getProjectWithDemand = (projectId) => {
+    return (
+      projectDemands.find((p) => p.id === projectId) || {
+        monthlyDemand: {},
+      }
+    );
+  };
+
+  // Template for project name column
+  const nameBodyTemplate = (rowData) => {
+    return (
+      <div>
+        <div className="project-name-column">{rowData.name}</div>
+        <div className="text-sm text-gray-600">{rowData.category}</div>
+      </div>
+    );
+  };
+
+  // Template for priority column
+  const priorityBodyTemplate = (rowData) => {
+    const getSeverity = (priority) => {
+      switch (priority.toLowerCase()) {
+        case "low":
+          return "info";
+        case "medium":
+          return "warning";
+        case "high":
+          return "danger";
+        case "critical":
+          return "danger";
+        default:
+          return "info";
+      }
+    };
 
     return (
       <Tag
-        value={rowData.priority.toUpperCase()}
-        severity={severity}
-        style={{ textTransform: "capitalize" }}
+        value={rowData.priority}
+        severity={getSeverity(rowData.priority)}
+        className="text-xs"
+        rounded
       />
     );
   };
 
-  // Prepare status tag template
-  const statusTemplate = (rowData) => {
-    let severity = "info";
-    if (rowData.status === "active") severity = "success";
-    else if (rowData.status === "planned") severity = "warning";
-    else if (rowData.status === "completed") severity = "secondary";
-
+  // Template for action column (include/exclude buttons)
+  const actionBodyTemplate = (rowData) => {
     return (
-      <Tag
-        value={rowData.status.toUpperCase()}
-        severity={severity}
-        style={{ textTransform: "capitalize" }}
-      />
-    );
-  };
-
-  // Format date template
-  const dateTemplate = (rowData, field) => {
-    const date = new Date(rowData[field]);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
-  // Menu items for actions
-  const menuItems = [
-    {
-      label: excluded ? "Include Project" : "Exclude Project",
-      icon: excluded ? "pi pi-plus" : "pi pi-minus",
-      command: () => {
-        if (selectedProject) {
-          toggleProjectExclusion(selectedProject.id, excluded);
+      <Button
+        icon={excluded ? "pi pi-plus" : "pi pi-minus"}
+        tooltip={excluded ? "Include Project" : "Exclude Project"}
+        tooltipOptions={{ position: "top" }}
+        className={
+          excluded
+            ? "p-button-success p-button-sm"
+            : "p-button-danger p-button-sm"
         }
-      },
-    },
-    {
-      label: "View Details",
-      icon: "pi pi-eye",
-      command: () => {
-        // Placeholder for view action
-        console.log("View project", selectedProject?.name);
-      },
-    },
-  ];
+        onClick={() => toggleProjectExclusion(rowData.id, excluded)}
+      />
+    );
+  };
 
-  // Actions column template
-  const actionsTemplate = (rowData) => {
+  // Template for monthly demand cells
+  const demandBodyTemplate = (rowData, options) => {
+    const monthId = options.field;
+    const projectWithDemand = getProjectWithDemand(rowData.id);
+    const demand = projectWithDemand.monthlyDemand[monthId] || 0;
+
+    // Determine cell styling based on demand percentage
+    let className = "";
+
+    if (demand === 0) {
+      className = "demand-cell demand-cell-empty";
+    } else if (demand > 100) {
+      className = "demand-cell demand-cell-over";
+    } else if (demand >= 90) {
+      className = "demand-cell demand-cell-high";
+    } else if (demand >= 50) {
+      className = "demand-cell demand-cell-medium";
+    } else {
+      className = "demand-cell demand-cell-low";
+    }
+
+    return <div className={className}>{demand > 0 ? `${demand}%` : "-"}</div>;
+  };
+
+  // Generate dynamic columns for months
+  const monthColumns = filteredMonths.map((month) => {
     return (
-      <div className="flex justify-content-center">
-        <Button
-          icon="pi pi-ellipsis-v"
-          className="p-button-rounded p-button-text"
-          onClick={(e) => {
-            setSelectedProject(rowData);
-            menuRef.current.toggle(e);
-          }}
-          aria-haspopup
-          aria-controls="project-actions-menu"
-        />
-      </div>
+      <Column
+        key={month.id}
+        field={month.id}
+        header={month.label}
+        body={demandBodyTemplate}
+        style={{ minWidth: "100px", width: "100px" }}
+        headerClassName="text-center"
+      />
     );
-  };
-
-  // Demand visualization column
-  const demandVisualizationTemplate = (rowData) => {
-    // Find the project demand data
-    const projectDemand = projectDemands.find((d) => d.id === rowData.id);
-    if (!projectDemand) return <div>No data</div>;
-
-    // Prepare data for chart
-    const labels = filteredMonths.map((month) => month.label);
-    const data = filteredMonths.map(
-      (month) => projectDemand.monthlyDemand[month.id] || 0
-    );
-
-    const chartData = {
-      labels,
-      datasets: [
-        {
-          label: "Resource Demand",
-          data,
-          backgroundColor: "rgba(0, 89, 219, 0.2)",
-          borderColor: "rgba(0, 89, 219, 1)",
-          borderWidth: 1,
-          fill: true,
-        },
-      ],
-    };
-
-    const options = {
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: Math.max(...data) * 1.2 || 5, // Add 20% headroom or default to 5 if all zeros
-          ticks: {
-            precision: 1,
-          },
-        },
-      },
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false,
-        },
-      },
-      elements: {
-        line: {
-          tension: 0.4, // Curved lines
-        },
-      },
-    };
-
-    return (
-      <div style={{ height: "60px" }}>
-        <Chart type="line" data={chartData} options={options} />
-      </div>
-    );
-  };
-
-  // Calculate total demand for each project
-  const totalDemandTemplate = (rowData) => {
-    const projectDemand = projectDemands.find((d) => d.id === rowData.id);
-    if (!projectDemand) return "0";
-
-    const totalDemand = filteredMonths.reduce(
-      (sum, month) => sum + (projectDemand.monthlyDemand[month.id] || 0),
-      0
-    );
-
-    return totalDemand.toFixed(1);
-  };
+  });
 
   return (
     <div className="projects-list">
       <DataTable
         value={projectsList}
-        paginator
-        rows={10}
-        rowsPerPageOptions={[5, 10, 25]}
-        tableStyle={{ minWidth: "50rem" }}
-        scrollable
-        className="projects-table"
+        responsiveLayout="scroll"
+        emptyMessage={`No ${excluded ? "excluded" : ""} projects found`}
+        showGridlines
+        rowHover
+        className="project-datatable"
+        scrollHeight="450px"
       >
+        {/* Fixed columns */}
         <Column
           field="name"
           header="Project Name"
-          style={{ width: "200px", fontWeight: "bold" }}
+          body={nameBodyTemplate}
+          style={{ minWidth: "300px" }}
+          className="project-name-column"
+          frozen
         />
         <Column
           field="priority"
           header="Priority"
-          body={priorityTemplate}
-          style={{ width: "120px" }}
+          body={priorityBodyTemplate}
+          style={{ minWidth: "120px", width: "120px" }}
+          className="project-priority-column"
         />
+
+        {/* Dynamic month columns */}
+        {monthColumns}
+
+        {/* Action column */}
         <Column
-          field="status"
-          header="Status"
-          body={statusTemplate}
-          style={{ width: "120px" }}
-        />
-        <Column
-          field="startDate"
-          header="Start Date"
-          body={(rowData) => dateTemplate(rowData, "startDate")}
-          style={{ width: "120px" }}
-        />
-        <Column
-          field="endDate"
-          header="End Date"
-          body={(rowData) => dateTemplate(rowData, "endDate")}
-          style={{ width: "120px" }}
-        />
-        <Column
-          field="demand"
-          header="Total Demand"
-          body={totalDemandTemplate}
-          style={{ width: "100px", textAlign: "center" }}
-        />
-        <Column
-          field="visualization"
-          header="Demand Over Time"
-          body={demandVisualizationTemplate}
-          style={{ width: "300px" }}
-        />
-        <Column
-          body={actionsTemplate}
-          exportable={false}
-          style={{ width: "50px" }}
+          body={actionBodyTemplate}
+          style={{ width: "80px" }}
+          frozen
+          alignFrozen="right"
+          className="action-column"
         />
       </DataTable>
-
-      <Menu model={menuItems} popup ref={menuRef} id="project-actions-menu" />
     </div>
   );
 };

@@ -1,276 +1,196 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { Tooltip } from "primereact/tooltip";
-import { OverlayPanel } from "primereact/overlaypanel";
-import { Button } from "primereact/button";
-import { Dialog } from "primereact/dialog";
-import { InputNumber } from "primereact/inputnumber";
 import { useCapacity } from "../context/CapacityContext";
+import AllocationEditModal from "./AllocationEditModal";
+
+// Conversion constants
+const WORK_DAYS_PER_WEEK = 5;
+const WORK_HOURS_PER_WEEK = 40;
 
 const CapacityTable = () => {
   const {
     resources,
     filteredMonths,
+    selectedCategory,
+    selectedMainCategory,
+    categories,
     viewMode,
-    updateResourceAllocation,
   } = useCapacity();
 
-  const [currentResource, setCurrentResource] = useState(null);
-  const [currentMonth, setCurrentMonth] = useState(null);
-  const [editDialogVisible, setEditDialogVisible] = useState(false);
-  const [editValues, setEditValues] = useState([]);
+  // State for the allocation edit modal
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [selectedResource, setSelectedResource] = useState(null);
+  const [selectedMonth, setSelectedMonth] = useState(null);
 
-  const op = React.useRef(null);
-
-  // Prepare header row with months
-  const dynamicColumns = filteredMonths.map((month) => (
-    <Column
-      key={month.id}
-      field={`allocations.${month.id}.totalAllocation`}
-      header={month.label}
-      body={(rowData) => allocationCellTemplate(rowData, month.id)}
-      style={{ width: "120px", textAlign: "center" }}
-    />
-  ));
-
-  // Template for allocation cells
-  const allocationCellTemplate = (rowData, monthId) => {
-    const allocation = rowData.allocations[monthId];
-    const allocationClass = allocation.allocationClass || "allocation-0";
-    const allocationPercent = allocation.totalAllocation || 0;
-
-    // Format the displayed value based on view mode
-    let displayValue;
-    switch (viewMode) {
-      case "days":
-        displayValue = ((allocationPercent / 100) * 20).toFixed(1); // Assuming 20 working days per month
-        break;
-      case "hours":
-        displayValue = ((allocationPercent / 100) * 160).toFixed(0); // Assuming 160 working hours per month
-        break;
-      case "percentage":
-      default:
-        displayValue = `${allocationPercent}%`;
+  // Find the label for the selected category
+  const findCategoryLabel = () => {
+    if (selectedCategory) {
+      // Find subcategory
+      for (const mainCategory of categories) {
+        for (const subCategory of mainCategory.children || []) {
+          if (subCategory.key === selectedCategory) {
+            return `${mainCategory.label} / ${subCategory.label}`;
+          }
+        }
+      }
+    } else if (selectedMainCategory) {
+      // Find main category
+      const category = categories.find((c) => c.key === selectedMainCategory);
+      return category ? category.label : "";
     }
+    return "All Resources";
+  };
 
+  const categoryLabel = findCategoryLabel();
+
+  // Body template for name column
+  const nameBodyTemplate = (rowData) => {
     return (
-      <div
-        className={`allocation-cell ${allocationClass}`}
-        onClick={(e) => showProjectAllocations(e, rowData, monthId)}
-      >
-        <Tooltip
-          target={`.${allocationClass}`}
-          mouseTrack
-          mouseTrackLeft={10}
+      <div className="flex align-items-center">
+        <span className="resource-name-column">{rowData.name}</span>
+      </div>
+    );
+  };
+
+  // Body template for role column
+  const roleBodyTemplate = (rowData) => {
+    return <div className="resource-role-column">{rowData.category}</div>;
+  };
+
+  // Open the edit modal when a cell is clicked
+  const handleCellClick = (resourceId, monthId) => {
+    setSelectedResource(resourceId);
+    setSelectedMonth(monthId);
+    setEditModalVisible(true);
+  };
+
+  const allocationBodyTemplate = useCallback(
+    (rowData, options) => {
+      const monthId = options.field;
+      const allocation = rowData.allocations[monthId];
+
+      if (!allocation) return null;
+
+      const { totalAllocation, allocationClass } = allocation;
+
+      // Format the allocation based on the view mode
+      let displayValue;
+      switch (viewMode) {
+        case "days":
+          // Convert percentage to days per week (out of 5 days)
+          const days = ((totalAllocation / 100) * WORK_DAYS_PER_WEEK).toFixed(
+            1
+          );
+          displayValue = `${days}d`;
+          break;
+        case "hours":
+          // Convert percentage to hours per week (out of 40 hours)
+          const hours = Math.round(
+            (totalAllocation / 100) * WORK_HOURS_PER_WEEK
+          );
+          displayValue = `${hours}h`;
+          break;
+        case "percentage":
+          // Display as percentage
+          displayValue = `${totalAllocation}%`;
+          break;
+        default:
+          // Default display as percentage
+          displayValue = `${totalAllocation}%`;
+          break;
+      }
+
+      return (
+        <div
+          className={`capacity-cell ${allocationClass}`}
+          style={{ cursor: "pointer" }}
+          onClick={() => handleCellClick(rowData.id, monthId)}
+          key={`${rowData.id}-${monthId}-${viewMode}`}
         >
-          <div>
-            <strong>{rowData.name}</strong>
-            <br />
-            Allocation: {allocationPercent}%
-            <br />
-            {viewMode === "days" && `${displayValue} days`}
-            {viewMode === "hours" && `${displayValue} hours`}
-          </div>
-        </Tooltip>
-        <span>{displayValue}</span>
-      </div>
-    );
-  };
+          {displayValue}
+        </div>
+      );
+    },
+    [viewMode, handleCellClick]
+  );
 
-  // Show project allocations in overlay panel
-  const showProjectAllocations = (event, resource, monthId) => {
-    setCurrentResource(resource);
-    setCurrentMonth(monthId);
-    op.current.toggle(event);
-  };
-
-  // Open edit dialog
-  const openEditDialog = () => {
-    if (!currentResource || !currentMonth) return;
-
-    const projectAllocations = currentResource.allocations[currentMonth].projectAllocations || [];
-    
-    // Initialize edit values with current allocations
-    setEditValues([...projectAllocations]);
-    setEditDialogVisible(true);
-    op.current.hide();
-  };
-
-  // Save allocation changes
-  const saveAllocationChanges = () => {
-    if (!currentResource || !currentMonth) return;
-
-    // Calculate total allocation
-    const totalAllocation = editValues.reduce(
-      (sum, item) => sum + (item.allocation || 0),
-      0
-    );
-
-    // Update resource allocation
-    updateResourceAllocation(
-      currentResource.id,
-      currentMonth,
-      editValues,
-      totalAllocation
-    );
-
-    setEditDialogVisible(false);
-  };
-
-  // Handler for allocation input change
-  const handleAllocationChange = (index, value) => {
-    const newValues = [...editValues];
-    newValues[index] = { ...newValues[index], allocation: value || 0 };
-    setEditValues(newValues);
-  };
-
-  // Project allocations panel content
-  const projectAllocationsContent = () => {
-    if (!currentResource || !currentMonth) return null;
-
-    const allocations = currentResource.allocations[currentMonth];
-    const projectAllocations = allocations.projectAllocations || [];
-    const totalAllocation = allocations.totalAllocation || 0;
-
+  // Generate dynamic columns for months
+  const monthColumns = filteredMonths.map((month) => {
     return (
-      <div className="project-allocations-panel">
-        <h3>
-          {currentResource.name} - {currentMonth.toUpperCase()}
-        </h3>
-        <div className="panel-content">
-          {projectAllocations.length > 0 ? (
-            <div>
-              <div className="allocations-list">
-                {projectAllocations.map((allocation, index) => (
-                  <div className="allocation-item" key={index}>
-                    <span className="project-name">
-                      {allocation.projectName}:
-                    </span>
-                    <span className="allocation-value">
-                      {allocation.allocation}%
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div className="allocation-total">
-                <span className="total-label">Total:</span>
-                <span className="total-value">{totalAllocation}%</span>
-              </div>
-            </div>
-          ) : (
-            <div className="no-allocations">No project allocations</div>
-          )}
-        </div>
-        <div className="panel-footer">
-          <Button
-            label="Edit"
-            icon="pi pi-pencil"
-            onClick={openEditDialog}
-            className="p-button-sm"
-          />
-        </div>
-      </div>
+      <Column
+        key={month.id}
+        field={month.id}
+        header={month.label}
+        body={allocationBodyTemplate}
+        style={{ minWidth: "100px", width: "100px", textAlign: "center" }}
+        headerClassName="text-center"
+      />
     );
-  };
+  });
 
-  // Footer for the edit dialog that shows total allocation
-  const editDialogFooter = (
-    <div>
-      <Button
-        label="Cancel"
-        icon="pi pi-times"
-        onClick={() => setEditDialogVisible(false)}
-        className="p-button-text"
-      />
-      <Button
-        label="Save"
-        icon="pi pi-check"
-        onClick={saveAllocationChanges}
-        autoFocus
-      />
+  // Table header with resource category info
+  const header = (
+    <div className="flex justify-content-between align-items-center">
+      <div className="text-lg font-medium">
+        {categoryLabel}
+        <span className="ml-2 text-sm text-primary font-normal">
+          ({resources.length}{" "}
+          {resources.length === 1 ? "resource" : "resources"})
+        </span>
+      </div>
     </div>
   );
 
-  // Calculate total allocation for the edit dialog
-  const calculateTotalAllocation = () => {
-    return editValues.reduce((sum, item) => sum + (item.allocation || 0), 0);
-  };
-
   return (
-    <div className="capacity-table">
-      <DataTable
-        value={resources}
-        paginator
-        rows={10}
-        rowsPerPageOptions={[5, 10, 25, 50]}
-        tableStyle={{ minWidth: "50rem" }}
-        scrollable
-        scrollHeight="flex"
-        className="resource-table"
-      >
-        <Column
-          field="name"
-          header="Resource Name"
-          frozen
-          style={{ width: "200px", fontWeight: "bold" }}
+    <div
+      className="capacity-table-wrapper"
+      style={{ maxWidth: "100%", overflow: "auto" }}
+    >
+      <div className="capacity-table">
+        <DataTable
+          value={resources}
+          scrollable
+          scrollHeight="400px"
+          resizableColumns
+          columnResizeMode="expand"
+          showGridlines
+          responsiveLayout="scroll"
+          emptyMessage="No resources found"
+          rowHover
+          className="capacity-datatable"
+          header={header}
+          key={`capacity-table-${viewMode}`}
+        >
+          {/* Fixed columns */}
+          <Column
+            field="name"
+            header="Resource"
+            body={nameBodyTemplate}
+            style={{ minWidth: "200px", width: "200px" }}
+            frozen
+            className="resource-name-column"
+          />
+          <Column
+            field="category"
+            header="Role"
+            body={roleBodyTemplate}
+            style={{ minWidth: "180px", width: "180px" }}
+            className="resource-role-column"
+          />
+
+          {/* Dynamic month columns */}
+          {monthColumns}
+        </DataTable>
+
+        {/* Allocation Edit Modal */}
+        <AllocationEditModal
+          visible={editModalVisible}
+          onHide={() => setEditModalVisible(false)}
+          resourceId={selectedResource}
+          monthId={selectedMonth}
         />
-        <Column
-          field="category"
-          header="Role"
-          frozen
-          style={{ width: "200px" }}
-        />
-        {dynamicColumns}
-      </DataTable>
-
-      {/* Overlay panel for allocations */}
-      <OverlayPanel ref={op} style={{ width: "300px" }}>
-        {projectAllocationsContent()}
-      </OverlayPanel>
-
-      {/* Edit allocations dialog */}
-      <Dialog
-        header="Edit Allocations"
-        visible={editDialogVisible}
-        style={{ width: "400px" }}
-        modal
-        onHide={() => setEditDialogVisible(false)}
-        footer={editDialogFooter}
-      >
-        <div className="edit-allocations-container">
-          {editValues.map((project, index) => (
-            <div className="edit-allocation-item" key={index}>
-              <label htmlFor={`project-${index}`}>{project.projectName}:</label>
-              <InputNumber
-                id={`project-${index}`}
-                value={project.allocation}
-                onValueChange={(e) => handleAllocationChange(index, e.value)}
-                suffix="%"
-                min={0}
-                max={100}
-              />
-            </div>
-          ))}
-
-          <div className="allocation-total edit-total">
-            <span className="total-label">Total Allocation:</span>
-            <span
-              className={`total-value ${
-                calculateTotalAllocation() > 100 ? "over-allocated" : ""
-              }`}
-            >
-              {calculateTotalAllocation()}%
-              {calculateTotalAllocation() > 100 && (
-                <i
-                  className="pi pi-exclamation-triangle ml-2"
-                  title="Resource is over-allocated"
-                ></i>
-              )}
-            </span>
-          </div>
-        </div>
-      </Dialog>
+      </div>
     </div>
   );
 };
