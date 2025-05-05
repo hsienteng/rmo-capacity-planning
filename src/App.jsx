@@ -4,6 +4,7 @@ import { Button } from "primereact/button";
 import { Toolbar } from "primereact/toolbar";
 
 import CapacityPlanning from "./components/CapacityPlanning";
+import Header from "./components/Header";
 import { useCapacity } from "./context/CapacityContext";
 
 function App() {
@@ -15,47 +16,7 @@ function App() {
       style={{ backgroundColor: "var(--gray-100)" }}
     >
       {/* Header */}
-      {/* <header className="app-header shadow-1">
-        <div className="flex align-items-center">
-          <button
-            className="sidebar-toggle md:hidden p-2"
-            onClick={toggleSidebar}
-            aria-label="Toggle sidebar"
-          >
-            <i className="pi pi-bars"></i>
-          </button>
-          <div className="app-logo ml-2">
-            <img
-              src="/src/assets/logo.svg"
-              alt="RMO Logo"
-              className="app-logo-image"
-            />
-            <span>Capacity Planning</span>
-          </div>
-        </div>
-
-        <div className="flex align-items-center gap-3">
-          <span className="p-input-icon-left">
-            <i className="pi pi-search" />
-            <input className="p-inputtext p-component" placeholder="Search" />
-          </span>
-          <Button
-            icon="pi pi-bell"
-            className="p-button-rounded p-button-text p-button-plain"
-            badge="3"
-            badgeClassName="p-badge-danger"
-          />
-          <Avatar
-            icon="pi pi-user"
-            shape="circle"
-            size="normal"
-            style={{
-              backgroundColor: "var(--primary-light)",
-              color: "var(--primary-color)",
-            }}
-          />
-        </div>
-      </header> */}
+      <Header />
 
       {/* Main content */}
       <div className="main-container">

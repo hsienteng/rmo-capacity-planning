@@ -1,3 +1,59 @@
+/* Temus Header Styles */
+.temus-header {
+  background-color: #0c0c25;
+  color: white;
+  height: 50px;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  padding: 0 20px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+}
+
+.header-logo {
+  font-weight: 600;
+  font-size: 1rem;
+  color: white;
+  letter-spacing: 0.5px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-icon-button.p-button {
+  color: white;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.header-icon-button.p-button:hover {
+  background-color: transparent;
+}
+
+.main-container {
+  margin-top: 40px;
+  padding-top: calc(1.25rem + 40px);
+}
+
 .search-container {
   margin-right: 1rem;
 }
@@ -344,7 +400,7 @@ h6 {
 }
 
 .p-multiselect-panel .p-multiselect-item:hover {
-  background-color: var(--primary-light);
+  background-color: var (--primary-light);
 }
 
 .p-multiselect-panel .p-multiselect-item.p-highlight {
@@ -470,7 +526,6 @@ h6 {
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  margin: 0 auto;
   width: 100%;
 }
 
