@@ -272,12 +272,12 @@ const ResourceDetailsModal = ({ visible, onHide, resourceId }) => {
                   className="project-name-column"
                   frozen
                 />
-                <Column
+                {/* <Column
                   field="priority"
                   header="Priority"
                   body={priorityBodyTemplate}
                   style={{ minWidth: "120px", width: "120px" }}
-                />
+                /> */}
                 {monthColumns}
               </DataTable>
             </TabPanel>
@@ -302,12 +302,12 @@ const ResourceDetailsModal = ({ visible, onHide, resourceId }) => {
                   className="project-name-column"
                   frozen
                 />
-                <Column
+                {/* <Column
                   field="priority"
                   header="Priority"
                   body={priorityBodyTemplate}
                   style={{ minWidth: "120px", width: "120px" }}
-                />
+                /> */}
                 {monthColumns}
               </DataTable>
             </TabPanel>
