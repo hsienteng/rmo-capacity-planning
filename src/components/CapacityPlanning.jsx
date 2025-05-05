@@ -221,6 +221,7 @@ const CapacityPlanning = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="p-inputtext-sm"
+                style={{ height: "32px" }}
               />
             </span>
             <span className="font-medium text-gray-700">View:</span>
@@ -232,7 +233,21 @@ const CapacityPlanning = () => {
               ]}
               value={viewMode}
               onChange={(e) => setViewMode(e.value)}
-              style={{ width: "120px" }}
+              style={{
+                width: "120px",
+                height: "32px",
+                display: "flex",
+                alignItems: "center",
+              }}
+              className="p-inputtext-sm"
+              panelStyle={{ zIndex: 1000, padding: "4px" }}
+              pt={{
+                value: { className: "flex align-items-center" },
+                trigger: {
+                  className: "flex align-items-center justify-content-center",
+                },
+                item: { className: "p-2" },
+              }}
             />
           </div>
         </div>
